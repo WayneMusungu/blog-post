@@ -1,12 +1,31 @@
+from email.policy import default
+from enum import unique
 from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
+#Creating a Flask Instance
 app = Flask(__name__)
 
-
+#Adding a database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+#Secret Key
 app.config['SECRET_KEY'] = "this is no secret"
+#Database Initialization
+db = SQLAlchemy(app)
+
+#Model Creation
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), unique=True, nullable=False)
+    email =db.Column(db.String(150),unique=True, nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return '<Name %r>' % self.name
 
 #Form Class
 class NameForm(FlaskForm):
