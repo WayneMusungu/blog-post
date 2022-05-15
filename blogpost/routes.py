@@ -2,6 +2,7 @@ from flask import render_template, url_for, flash, redirect
 from blogpost import app, db, bcrypt
 from blogpost.forms import RegistrationForm, LoginForm
 from blogpost.models import User, Post
+from flask_login import login_user, current_user, logout_user
 
 
 
@@ -39,6 +40,10 @@ def about():
 
 @app.route("/register", methods=['GET', 'POST'] )
 def register():
+    
+    if current_user.is_authenticated:
+        
+        return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
         
@@ -55,13 +60,22 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        
+        return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
-        if form.email.data == 'wayne@qq.com' and form.password.data == '12345':
-            flash('You have been logged in!', 'success')
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            
+            login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
+           
+        # if form.email.data == 'wayne@qq.com' and form.password.data == '12345':
+        #     flash('You have been logged in!', 'success')
+        #     return redirect(url_for('home'))
         else:
-            flash('Invalid Credentials!', 'danger')
+            flash('Invalid Credentials! Check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 
@@ -69,3 +83,10 @@ def login():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('fourOwfour.html'),404
+
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
