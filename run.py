@@ -7,16 +7,19 @@ app = Flask(__name__)
 # def index():
     # return"<h1>Hello World!</h1>"
     
+@app.route('/home')
+def home():
+    return render_template("home.html")
 
-def index():
-    return render_template("index.html")
-
-@app.route('/user/<name>')
-def user(name):
-    return"<h1>Hello {}!</h1>".format(name)
+@app.route('/about')
+def about():
+   return render_template("about.html")
 
 # Custom Error pages
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('fourOwfour.html'),404
+
+if __name__ == '__main__':
+    app.run(debug=True)
     
