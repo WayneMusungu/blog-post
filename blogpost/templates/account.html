@@ -25,7 +25,7 @@
                 {% else %}
                     {{ form.username(class="form-control form-control-lg") }}
                 {% endif %}
-            </div>
+            </div><br/>
             <div class="form-group">
                 {{ form.email.label(class="form-control-label") }}
                 {% if form.email.errors %}
@@ -38,8 +38,18 @@
                 {% else %}
                     {{ form.email(class="form-control form-control-lg") }}
                 {% endif %}
+            </div><br/>
+            <div class="form-group">
+                {{ form.picture.label() }}
+                <br/>
+                {{ form.picture(class="form-control-file") }}
+                {% if form.picture.errors %}
+                    {% for error in form.picture.errors %}
+                        <span class="text-danger">{{ error }}</span></br>
+                    {% endfor %}
+                {% endif %}
             </div>
-            
+            <br/>
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
