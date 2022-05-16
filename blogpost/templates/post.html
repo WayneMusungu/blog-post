@@ -9,6 +9,12 @@
             <a class="mr-2" href="#">{{ post.author.username }}</a>
             <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
             <small>{{ post.category }}</small>
+            <br/>
+            {% if post.author == current_user %}
+            <a class="btn btn-primary m-1" href="{{ url_for('update_post', post_id=post.id)}}">Update</a>
+            <a class="btn btn-danger m-1" href="{{ url_for('delete_post',post_id = post.id) }}">Delete</a>
+
+            {% endif %}
           </div>
           <h2 class="article_title">{{ post.title }}</h2>
           <p class="article-content">{{ post.content }}</p>
