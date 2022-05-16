@@ -68,4 +68,8 @@ class PostForm(FlaskForm):
     category = SelectField('Categories', choices=[('Business Quotes', 'Business Quotes'), ('Life Quotes', 'Life Quotes'), ('Funny Quotes', 'Funny Quotes'), ('Wisdom Quotes', 'Wisdom Quotes'),('Inspirational Quotes', 'Inspirational Quotes'), ('Controversial Quotes', 'Controversial Quotes')], validators=[DataRequired()])
     submit = SubmitField('Post')
 
-    
+class CommentForm(FlaskForm):
+    content = StringField('Add a comment', validators=[DataRequired()])
+    upvote = BooleanField('Upvote')
+    downvote = BooleanField('Downvote')
+    submit = SubmitField('Comment')

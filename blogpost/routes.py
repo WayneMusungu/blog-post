@@ -1,30 +1,30 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, abort
 from blogpost import app, db, bcrypt
-from blogpost.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
-from blogpost.models import User, Post
+from blogpost.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, CommentForm
+from blogpost.models import User, Post, Comments
 from flask_login import login_user, current_user, logout_user, login_required
 
 
 
-posts = [
-    {
+# posts = [
+#     {
         
-        'author': 'Wayne Musungu',
-        'title': 'Blog Post 1',
-        'content': 'Initial post',
-        'date_posted': 'May 15, 2021'
-    },
-     {
+#         'author': 'Wayne Musungu',
+#         'title': 'Blog Post 1',
+#         'content': 'Initial post',
+#         'date_posted': 'May 15, 2021'
+#     },
+#      {
         
-        'author': 'James White',
-        'title': 'Blog Post 2',
-        'content': 'Second post',
-        'date_posted': 'June 15, 2021'
-    },
-]
+#         'author': 'James White',
+#         'title': 'Blog Post 2',
+#         'content': 'Second post',
+#         'date_posted': 'June 15, 2021'
+#     },
+# ]
 
 
 
@@ -35,6 +35,7 @@ posts = [
     
 @app.route("/home")
 def home():
+    posts = Post.query.all()
     return render_template("home.html", posts=posts)
 
 @app.route("/about")
@@ -136,10 +137,40 @@ def account():
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
-        # post = Post(title=form.title.data, content=form.content.data , category=form.category.data, author=current_user)
+        post = Post(title=form.title.data, content=form.content.data , category=form.category.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
         flash('Your post has been created', 'success')
         return redirect(url_for('home'))
-    return render_template('create_post.html', title='New Post', form=form)
+    return render_template('create_post.html', title='New Post', form=form,legend='New Post')
+
+
+@app.route("/post/<int:post_id>")
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html',title=post.title, post=post)
+
+
+@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+        
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title= form.title.data
+        post.content= form.content.data
+        db.session.commit()
+        flash('Your post has been updated!', 'success')
+        return redirect(url_for('post', post_id=post.id))
+    elif request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
+    
+    
 
 
 # @posts.route("/post/new", methods=['GET', 'POST'])
@@ -153,3 +184,63 @@ def new_post():
 #         flash('Your post has been created!', 'success')
 #         return redirect(url_for('main.home'))
 #     return render_template('pitch.html', title='New Pitch',form=form, legend='New Pitch')
+
+
+
+
+
+# @app.route("/post/<int:post_id>" , methods=['GET', 'POST'])
+# def post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     comments = Comments.query.order_by(Comments.date_posted.desc()).filter_by(post_id=post_id)
+#     form = CommentForm()
+#     if form.validate_on_submit():
+#       if form.upvote.data:
+#         recent = post.likes
+#         new = recent + 1
+#         post.likes = new
+#         db.session.commit()
+
+#       if form.downvote.data:
+#         recent = post.dislikes
+#         new = recent + 1
+#         post.dislikes = new
+#         db.session.commit()
+
+#       comment = Comments(content=form.content.data, user_comments= current_user, post_id=post_id)
+#       db.session.add(comment)
+#       db.session.commit()
+#       flash('You have commented', 'primary')
+#       return redirect(url_for('post', post_id=post_id))
+#     return render_template('post.html', post=post, form=form, comments=comments)
+
+# @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+# @login_required
+# def update_post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     if post.author != current_user:
+        
+#         abort(403)
+#     form = PostForm()
+#     if form.validate_on_submit():
+#         post.title = form.title.data
+#         post.content = form.content.data
+#         db.session.commit()
+#         flash('Your Pitch has been updated!', 'success')
+#         return redirect(url_for('post', post_id=post.id))
+#     elif request.method == 'GET':
+#         form.title.data = post.title
+#         form.content.data = post.content
+#     return render_template('new_post.html', legend ='Update pitch', form=form)
+
+# @app.route("/post/<int:post_id>/delete", methods=['POST'])
+# @login_required
+# def delete_post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     if post.author != current_user:
+#         abort(403)
+#     db.session.delete(post)
+#     db.session.commit()
+#     flash("Your post has been deleted!", 'success')
+#     return redirect(url_for('home'))
+
