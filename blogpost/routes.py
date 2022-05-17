@@ -1,49 +1,42 @@
+from crypt import methods
+from email.quoprimime import quote
 import os
 import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, abort
 from blogpost import app, db, bcrypt
 from blogpost.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, CommentForm
-from blogpost.models import User, Post, Comments
+from blogpost.models import Quote, User, Post, Comments
 from flask_login import login_user, current_user, logout_user, login_required
+import requests
+import json
+# from blogpost.reque import get_quote
 
 
-
-# posts = [
-#     {
-        
-#         'author': 'Wayne Musungu',
-#         'title': 'Blog Post 1',
-#         'content': 'Initial post',
-#         'date_posted': 'May 15, 2021'
-#     },
-#      {
-        
-#         'author': 'James White',
-#         'title': 'Blog Post 2',
-#         'content': 'Second post',
-#         'date_posted': 'June 15, 2021'
-#     },
-# ]
-
-
+def get_quote():
+    quote_url = 'http://quotes.stormconsultancy.co.uk/random.json'
+    req = requests.get(quote_url)
+    data = json.loads(req.content)
+    quote = Quote(data["quote"],data["author"])
+    return quote
 
 
 @app.route('/')
-# def index():
-    # return"<h1>Hello World!</h1>"
     
 @app.route("/home")
+@login_required
 def home():
+    quote = get_quote()
+   
     posts = Post.query.all()
-    return render_template("home.html", posts=posts)
+    
+    return render_template("home.html", posts=posts, quote=quote)
 
-@app.route("/about")
-def about():
-   return render_template("about.html", title='About')
+
 
 @app.route("/register", methods=['GET', 'POST'] )
 def register():
+   
     
     if current_user.is_authenticated:
         
@@ -145,19 +138,85 @@ def new_post():
     return render_template('create_post.html', title='New Post', form=form,legend='New Post')
 
 
-@app.route("/post/<int:post_id>")
+# @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
+# def post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     if post.author != current_user:
+#         abort(403)
+#     form = PostForm()
+#     if form.validate_on_submit():
+#         post.title = form.title.data
+#         post.content = form.content.data
+#         db.session.commit()
+#         flash('Your post has been updated', 'alert alert-primary')
+#         return redirect(url_for('post', post_id=post.id))
+#     elif request.method == 'GET':
+#         form.title.data = post.title
+#         form.content.data = post.content
+#     return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
+
+
+# @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+# @login_required
+# def update_post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     if post.author != current_user:
+#         abort(403)
+        
+#     form = PostForm()
+#     if form.validate_on_submit():
+#         post.title= form.title.data
+#         post.content= form.content.data
+#         db.session.commit()
+#         flash('Your post has been updated!', 'success')
+#         return redirect(url_for('post', post_id=post.id))
+#     elif request.method == 'GET':
+#         form.title.data = post.title
+#         form.content.data = post.content
+#     return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
+
+# @app.route("/post/<int:post_id>/delete", methods=['POST', 'GET'])
+# @login_required
+# def delete_post(post_id): 
+#     post = Post.query.get_or_404(post_id)
+#     if post.author != current_user:
+#         abort(403)
+#     db.session.delete(post)
+#     db.session.commit()
+#     flash('Your post has been deleted!', 'alert alert-success')
+#     return redirect(url_for('home'))
+
+@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html',title=post.title, post=post)
+    comments = Comments.query.order_by(Comments.date_posted.desc()).filter_by(post_id=post_id)
+    form = CommentForm()
+    if form.validate_on_submit():
+      if form.upvote.data:
+        recent = post.likes
+        new = recent + 1
+        post.likes = new
+        db.session.commit()
 
+      if form.downvote.data:
+        recent = post.dislikes
+        new = recent + 1
+        post.dislikes = new
+        db.session.commit()
 
-@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+      comment = Comments(content=form.content.data, user_comments= current_user, post_id=post_id)
+      db.session.add(comment)
+      db.session.commit()
+      flash('You have commented', 'primary')
+      return redirect(url_for('post', post_id=post_id))
+    return render_template('post.html', post=post, form=form, comments=comments)
+
+@app.route("/post/<int:post_id>/update", methods=['GET','POST'])
 @login_required
 def update_post(post_id):
     post = Post.query.get_or_404(post_id)
     if post.author != current_user:
         abort(403)
-        
     form = PostForm()
     if form.validate_on_submit():
         post.title= form.title.data
@@ -166,8 +225,13 @@ def update_post(post_id):
         flash('Your post has been updated!', 'success')
         return redirect(url_for('post', post_id=post.id))
     elif request.method == 'GET':
+        
+        
+        
+    
         form.title.data = post.title
         form.content.data = post.content
+    
     return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
 
 @app.route('/post/<int:post_id>/delete', methods=['POST', 'GET'])
@@ -177,81 +241,13 @@ def delete_post(post_id):
     if post.author != current_user:
         abort(403)
     db.session.delete(post)
-    db.session.commit()
+    # db.session.commit()
+
     flash('Your post has been deleted!', 'alert alert-success')
     return redirect(url_for('home'))
-    
-    
-
-
-# @posts.route("/post/new", methods=['GET', 'POST'])
-# @login_required
-# def new_post():
-#     form = PostForm()
-#     if form.validate_on_submit():
-#         post = Post(title=form.title.data, content=form.content.data , category=form.category.data, author=current_user)
-#         db.session.add(post)
-#         db.session.commit()
-#         flash('Your post has been created!', 'success')
-#         return redirect(url_for('main.home'))
-#     return render_template('pitch.html', title='New Pitch',form=form, legend='New Pitch')
 
 
 
 
 
-# @app.route("/post/<int:post_id>" , methods=['GET', 'POST'])
-# def post(post_id):
-#     post = Post.query.get_or_404(post_id)
-#     comments = Comments.query.order_by(Comments.date_posted.desc()).filter_by(post_id=post_id)
-#     form = CommentForm()
-#     if form.validate_on_submit():
-#       if form.upvote.data:
-#         recent = post.likes
-#         new = recent + 1
-#         post.likes = new
-#         db.session.commit()
-
-#       if form.downvote.data:
-#         recent = post.dislikes
-#         new = recent + 1
-#         post.dislikes = new
-#         db.session.commit()
-
-#       comment = Comments(content=form.content.data, user_comments= current_user, post_id=post_id)
-#       db.session.add(comment)
-#       db.session.commit()
-#       flash('You have commented', 'primary')
-#       return redirect(url_for('post', post_id=post_id))
-#     return render_template('post.html', post=post, form=form, comments=comments)
-
-# @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
-# @login_required
-# def update_post(post_id):
-#     post = Post.query.get_or_404(post_id)
-#     if post.author != current_user:
-        
-#         abort(403)
-#     form = PostForm()
-#     if form.validate_on_submit():
-#         post.title = form.title.data
-#         post.content = form.content.data
-#         db.session.commit()
-#         flash('Your Pitch has been updated!', 'success')
-#         return redirect(url_for('post', post_id=post.id))
-#     elif request.method == 'GET':
-#         form.title.data = post.title
-#         form.content.data = post.content
-#     return render_template('new_post.html', legend ='Update pitch', form=form)
-
-# @app.route("/post/<int:post_id>/delete", methods=['POST'])
-# @login_required
-# def delete_post(post_id):
-#     post = Post.query.get_or_404(post_id)
-#     if post.author != current_user:
-#         abort(403)
-#     db.session.delete(post)
-#     db.session.commit()
-#     flash("Your post has been deleted!", 'success')
-#     return redirect(url_for('home'))
 

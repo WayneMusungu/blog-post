@@ -1,26 +1,116 @@
 {% extends "base.html" %}
 {% block content %}
-    <article class="media content-section">
-      <img class="rounded-circle article-img"
+<article class="media content-section">
+    <img class="rounded-circle article-img"
         src="{{ url_for('static', filename='profile_pics/'  + post.author.image_file) }}">
-      
-        <div class="media-body">
-          <div class="article-metadata">
+
+    <div class="media-body">
+        <div class="article-metadata">
             <a class="mr-2" href="#">{{ post.author.username }}</a>
             <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
             <small>{{ post.category }}</small>
-            <br/>
+            <br />
             {% if post.author == current_user %}
-            <a class="btn btn-primary m-1" href="{{ url_for('update_post', post_id=post.id)}}">Update</a>
-            <a class="btn btn-danger m-1" href="{{ url_for('delete_post',post_id = post.id) }}">Delete</a>
+            <div>
+                <a class="btn btn-primary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a>
+                <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal"
+                    data-bs-target="#exampleModal">
+                    Delete
+                </button>
 
-            {% endif %}
-          </div>
-          <h2 class="article_title">{{ post.title }}</h2>
-          <p class="article-content">{{ post.content }}</p>
+                {% endif %}
+
+            </div>
+            <h2 class="article_title">{{ post.title }}</h2>
+            <p class="article-content">{{ post.content }}</p>
         </div>
-      </article>
+    </div>
+    <div style="display: flex">
+        <p>Upvotes: {{post.likes}}</p>
+        <p style="margin-left: 50px">Downvotes: {{post.dislikes}}</p>
+    </div>
+</article>
+<div class="container shadow p-3 mb-4 bg-body rounded" style="max-width: 900px; margin: 20px auto">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group mt-1 mb-2">
+            <legend class="border-bottom mb-4 text-center">Leave a Comment</legend>
+            <div class="form-check" style="display: flex">
+                <div>
+                    {{ form.upvote(class="form-check-input") }} {{
+                    form.upvote.label(class="form-check-label") }}
+                </div>
+                <div style="margin-left: 50px">
+                    {{ form.downvote(class="form-check-input") }} {{
+                    form.downvote.label(class="form-check-label") }}
+                </div>
+            </div>
 
+            <div class="form-group mt-2 mb-2">
+                {{ form.content.label(class="form-control-label") }} {% if
+                form.content.errors %} {{ form.content(class="form-control
+                form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.password.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %} {{ form.content(class="form-control form-control-lg") }} {%
+                endif %}
+            </div>
+        </fieldset>
+        <div class="form-group mt-2 mb-2">
+            {{ form.submit(class="btn btn-outline-primary") }}
+        </div>
+    </form>
+</div>
 
-{% endblock  content%}
+<div class="container d-flex justify-content-center mt-100 mb-100 shadow p-3 mb-4 bg-body rounded"
     
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Recent Comments</h4>
+                </div>
+                {% for comment in comments%}
+                <div class="comment-widgets m-b-20 p-4">
+                    <div class="d-flex flex-row comment-row">
+                        <div class="comment-text w-200">
+                            <h5>{{comment.user_comments.username}}</h5>
+                            <div class="comment-footer">
+                                <span class="date text-muted">{{comment.date_posted.strftime('%d-%m-%Y')}}</span>
+                            </div>
+                            <p class="m-b-5 m-t-10">{{comment.content}}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Post?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Server is Down. The delete button is under maintenance
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                    <input class="btn btn-danger" type="submit" value="Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content%}

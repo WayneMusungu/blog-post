@@ -1,6 +1,21 @@
 
 {% extends "base.html" %}
 {% block content %}
+<div class="container">
+  <blockquote class="quote-box text-center primary-color">
+    
+      <p class="quote-text">
+    
+      </p>
+      <hr />
+      <div class="blog-post-actions">
+        <p class="blog-post-bottom pull-left">
+         {{quote.author}}
+        </p>
+      </div>
+    </blockquote>
+
+
     {% for post in posts %}
     <article class="media content-section">
       <img class="rounded-circle article-img"

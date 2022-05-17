@@ -1,6 +1,7 @@
 from datetime import datetime
 from blogpost import db, login_manager
 from flask_login import UserMixin
+import random
 
 
 @login_manager.user_loader
@@ -44,3 +45,11 @@ class Comments(db.Model):
     
     def __repr__(self):
         return f"Post('{self.content}', '{self.date_posted}')"
+    
+    
+class Quote:
+    """
+    """
+    def __init__(self, author, quote):
+        self.author = author
+        self.quote = quote
