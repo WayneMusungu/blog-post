@@ -10,7 +10,7 @@ from blogpost.models import Quote, User, Post, Comments
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
 import json
-# from blogpost.reque import get_quote
+
 
 
 def get_quote():
@@ -106,6 +106,7 @@ def save_picture(form_picture):
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
+
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
@@ -128,6 +129,7 @@ def account():
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
+    quote = get_quote()
     form = PostForm()
     if form.validate_on_submit():
         post = Post(title=form.title.data, content=form.content.data , category=form.category.data, author=current_user)
@@ -135,7 +137,7 @@ def new_post():
         db.session.commit()
         flash('Your post has been created', 'success')
         return redirect(url_for('home'))
-    return render_template('create_post.html', title='New Post', form=form,legend='New Post')
+    return render_template('create_post.html', title='New Post', form=form,legend='New Post',quote=quote)
 
 
 # @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
@@ -207,7 +209,7 @@ def post(post_id):
       comment = Comments(content=form.content.data, user_comments= current_user, post_id=post_id)
       db.session.add(comment)
       db.session.commit()
-      flash('You have commented', 'primary')
+      flash('Your comment has been updated', 'primary')
       return redirect(url_for('post', post_id=post_id))
     return render_template('post.html', post=post, form=form, comments=comments)
 
@@ -241,7 +243,7 @@ def delete_post(post_id):
     if post.author != current_user:
         abort(403)
     db.session.delete(post)
-    # db.session.commit()
+    db.session.commit()
 
     flash('Your post has been deleted!', 'alert alert-success')
     return redirect(url_for('home'))
