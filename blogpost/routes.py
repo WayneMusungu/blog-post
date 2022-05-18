@@ -27,8 +27,9 @@ def get_quote():
 @login_required
 def home():
     quote = get_quote()
+    page = request.args.get('page', 1, type=int)
    
-    posts = Post.query.all()
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
     
     return render_template("home.html", posts=posts, quote=quote)
 
