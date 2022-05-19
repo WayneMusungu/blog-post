@@ -228,9 +228,6 @@ def update_post(post_id):
         flash('Your post has been updated!', 'success')
         return redirect(url_for('post', post_id=post.id))
     elif request.method == 'GET':
-        
-        
-        
     
         form.title.data = post.title
         form.content.data = post.content
