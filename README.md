@@ -20,6 +20,13 @@ The register page enables new users to create an account by providing the credet
 Upon successfull registration a user will be redirected to the login page, with a flash meassage informing them that their account has been created and they can login.
 ![LANDING PAGE](login.png)
 
+#### Homepage
+The homepage contains posts made by users and random quotes are displayed right below the navigation bar.
+![LANDING PAGE](homepage.png)
+
+#### Update Post
+A user can update or delete their post, and also other users are allowed to make comments on a particulars post and can either upvote or downvote a post.
+![LANDING PAGE](homepost.png)
 
 
 #### Getting Started
@@ -37,10 +44,10 @@ $ source virtual/bin/activate
 - As a user, I would like to be signed in and be able to log out.
 - As a user, I would like to submit a pitch.
 - As a user, I would like to view the pitches I have created.
-- As a user, I would like to update an already existing pitch.
-- As a user, I would like to delete an already existing pitch.
-- As a user, I would like to make comments an already existing pitch.
-- As a user, I would like to upvote and downvote an already existing pitch.
+- As a user, I would like to update an already existing post.
+- As a user, I would like to delete an already existing post.
+- As a user, I would like to make comments an already existing post.
+- As a user, I would like to upvote and downvote an already existing post.
 
 
 
