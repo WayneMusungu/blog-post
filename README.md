@@ -1,4 +1,4 @@
-### **Blog POst**
+### **Blog Post**
 
 ****
 #### Author: [Wayne Musungu](https://github.com/WayneMusungu)
