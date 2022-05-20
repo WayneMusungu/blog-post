@@ -25,7 +25,7 @@ The homepage contains posts made by users and random quotes are displayed right 
 ![LANDING PAGE](homepage.png)
 
 #### Update Post
-A user can update or delete their post, and also other users are allowed to make comments on a particulars post and can either upvote or downvote a post.
+A user can update or delete their post, and also other users are allowed to make comments on a particular post and can either upvote or downvote a post.
 ![LANDING PAGE](homepost.png)
 
 
